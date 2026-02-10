@@ -49,14 +49,49 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
 const testConnection = async () => {
     try {
         //intentar autenticar con la base de datos
-        await sequelize.authenticate();
-        console.log('Conexion a MySQL establecida exitosamente.');
+        await sequelize.authenticate(); //Si la autenticacion es exitosa, se establece la conexion
+        console.log('Conexion a MySQL establecida exitosamente.'); 
         return true;
     }  catch (error) {
         console.error('X Error al conectar con MySQL:',
-        error.message);
-        console.error('X Verifica que XAMPP este corriendo y las credenciales en .env sean correctas:');
+        error.message); //Si hay un error al conectar, se muestra el mensaje de error
+        console.error('X Verifica que XAMPP este corriendo y las credenciales en .env sean correctas:'); //Se recomienda verificar que el servidor de MySQL esté activo y que las credenciales en el archivo .env sean correctas
         return false;
         
     }
 }
+
+/**Funcion para sincronizar los modelos con la base de datos
+*esta funcion creara las tablas automaticamente basandose en los modelos
+*/
+/*@param {boolean} force - si es true, elimina y recrea todas la tablas
+*@param {boolean} alter - si es true, modifica las tablas existentes para que coincidan con los modelos definidos en Sequelize. Si es false, no realiza ningún cambio en las tablas existentes. 
+*/
+const syncDatabase = async (force = false, alter = false) => {
+    try {
+        //sincronizar todos los modelos con la base de datos
+        await sequelize.sync({ force, alter });
+
+        if (force) {
+            console.log('Base de datos sincronizada con (todas las tablas recreadas)');
+        } else if (alter) {
+            console.log('Base de datos sincronizada (tablas alteradas segun los modelos)');
+        } else {
+            console.log('Base de datos sincronizada correctamente)');
+
+        }
+        return true;
+        
+    } catch (error) {
+        console.error('X Error al sincronizar la base de datos:', error.message);
+        return false;
+    }
+
+}
+
+//exportar la instancia de sequelize y las funciones
+module.exports = {
+    sequelize,
+    testConnection,
+    syncDatabase
+};
