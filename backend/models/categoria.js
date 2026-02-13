@@ -85,7 +85,7 @@ const Categoria = sequelize.define('Categoria', {
 
                     //Importar modelos (aqui para evitar dependencias circulares)
                     const { Subcategoria } = require('./Subcategoria');
-                    const producto = require('./producto');
+                    const producto = require('./Producto');
                     
                     try {
                         //paso 1 desactivar las subcategorias de esta categoria
