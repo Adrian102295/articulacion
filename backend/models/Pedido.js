@@ -1,33 +1,33 @@
 /**
- * MODELO PEDIDO
- * define la tabbla pedido en la base de datos
- * Almacena la informacion de los pedidos realizados por los usuarios
+ * Modelo Pedido
+ * define la tabla pedido en la base datos
+ * almacena la informacion de los pedidos relizados por los usuarios
  */
 
-
-//Importar Datatypes de sequelize
+//Importar DataTrypes de sequelize
 const { DataTypes } = require('sequelize');
 
-
-//importar instancia de sequelize
-const { sequelize } = require('../config/database');
+//Importar instancia de sequelize
+const {sequelize} = require('../config/database');
+const { type } = require('node:os');
 
 
 /**
- * Definir el modelo de Pedido
+ * Definir el modelo de pedido
  */
 const Pedido = sequelize.define('Pedido', {
-    // campos de la tabla
-    // id identificador unico (PRIMARY KEY)
+    //Campos de la tabla 
+    //Id Indentificador unico (PRIMARY KEY)
     id: {
-        type: DataTypes.INTEGER, // tipo entero
-        primaryKey: true, // clave primaria
-        autoIncrement: true, // se incrementa automaticamente
-        allowNull: false // no puede ser nulo
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+        allowNull: false
+
     },
 
 
-    // Ususario ID del usuario que realizo el pedido
+    // UsuarioId ID del usuario que realizo el pedido
     usuarioId: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -36,66 +36,67 @@ const Pedido = sequelize.define('Pedido', {
             key: 'id'
         },
         onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT', // no se puede eliminiar un usuario con pedidos
+        onDelete: 'RESTRICT', // no se puede eliminar el usuario si tiene pedidos
         validate: {
             notNull: {
-                msg: 'Debe especificar un usuario'
+                msg: 'Debe especificar su usuario'
+
             }
+
         }
     },
     
     nombre: {
-        type: DataTypes.STRING(100), // tipo cadena de texto
-        allowNull: false, // no puede ser nulo
-        unique:{
+        type: DataTypes.STRING(100),
+        allowNull: false,
+        unique : {
             msg: 'Ya existe una categoria con ese nombre'
         },
-        validate: {
+        validate : {
             notEmpty: {
                 msg: 'El nombre de la categoria no puede estar vacio'
             },
             len: {
                 args: [2, 100],
-                msg: 'El nombre de la categoria debe tener entre 2 y 100 caracteres'
+
             }
         }
     },
 
     /**
-     *descripcion de la categoria
+     * descripcion de la categoria
      */
 
-     descripcion: {
+    descripcion: {
         type: DataTypes.TEXT,
-        allowNull: true, // puede ser nulo
-     },
+        allowNull: true
+    },
 
-    // Total monto total del pedido
-     total: {
-        type: DataTypes.DECIMAL(10,2),
+    // Total monto del pedido
+    total: {
+        type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
-        validate:{
-            isDecimal:{
-                msg: 'El total debe ser un  numero decimal valido'
+        validate: {
+            isDecimal: {
+                msg: 'El total debe ser un numero decimal valido'
             },
-
-            min:{
+            min: {
                 args: [0],
                 msg: 'El total no puede ser negativo'
             }
         }
-     },
+    },
 
-     /**
-      * Estado - estado actual del pedido
-      * valores posibles:
-      * pendiente: pedido creado, esperando pago
-      * pagado: pedido pagado, en proceso de preparacion
-      * enviado: pedido enviado al cliente
-      * cancelado: pedido cancelado por el cliente o por falta de pago
-      */
+    /**
+     * Estado - estado actual del pedido
+     * valores posibles:
+     * pendiente: pedido creado, esperando pago
+     * pagado: pedido paado, en preparacion
+     * enviado: pedido enviado al cliente
+     * cancelado: pedido cancelado 
+     */
 
-     estado:{
+    estado: {
         type: DataTypes.ENUM('Pendiente', 'Pagado', 'Enviado', 'Cancelado'),
         allowNull: false,
         defaultValue: 'Pendiente',
@@ -104,221 +105,264 @@ const Pedido = sequelize.define('Pedido', {
                 args: [['Pendiente', 'Pagado', 'Enviado', 'Cancelado']],
             }
         }
-     },
+    },
 
+    //Direccion de envio del pedido
 
-     // Dirreccion de envio del pedido
-     dirreccionEnvio:{
+    direccionEnvio: {
         type: DataTypes.TEXT,
         allowNull: false,
         validate: {
             notEmpty: {
-                msg: 'La dirreccion de envio no puede estar vacia es obligatoria'
+                msg: 'La direccion de envio es obligatoria'
             }
         }
-     },
+    },
 
-     //telefono de cintacto para el envio
-     telefono: {
+    // Telefono de contacto para el envio
+    telefono: {
         type: DataTypes.STRING(20),
         allowNull: false,
         validate: {
             notEmpty: {
-                msg: 'El telefono de contacto no puede estar vacio es obligatorio'
+                msg: 'El telefono de contacto es obligatorio'
             }
         }
-     },
+    },
 
-
-     // notas adicionales del pedido(opcional)
-     notas: {
+    // notas adicionales del pedido (opcional)
+    notas: {
         type: DataTypes.TEXT,
-        allowNull: true,
-     },
-
-     // Producto ID del Producto en el carrito carrito
-    productoId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'Productos',
-            key: 'id'
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE', //elimina el producto  del carrito
-        validate: {
-            notNull: {
-                msg: 'Debe especificar un producto'
-            }
-        }
+        allowNull: true
     },
 
-    // Cantidad de este producto en el carrito
-    cantidad: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 1,
-        validate: {
-            isInt: {
-                msg: 'La cantidad debe ser un numero entero'
-            },
-            min:{
-                args: [1],
-                msg: 'La cantidad debe ser al menos 1'
-            }
-        }
+    //Fecha de pago 
+    fechaPago: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+
+     //Fecha de envio
+    fechaEnvio: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+
+     //Fecha de entrega
+    fechaEntrega: {
+        type: DataTypes.DATE,
+        allowNull: true
     },
 
 
-    /**
-     * Precio Unitario del producto al momento de agregarlo al carrito
-     * Se guarda para mantener el precio aunque el producto cambie de precio
-     */
-
-    precioUnitario: {
-        type: DataTypes.DECIMAL(10,2),
-        allowNull: false,
-        validate:{
-            isDecimal:{
-                msg: 'El precio debe ser un  numero decimal valido'
-            },
-            min:{
-                args: [0],
-                msg: 'El precio no puede ser negativo'
-            }
-        }
-    }
 }, {
     //opciones del modelo
-
-    tableName: 'carritos',
-    timestamps: true,
-    //indices para mejorar las busquedas
-    indexes:[
+    tableName: 'pedidos',
+    timestamp: true,
+    //indice para mejorar las busquesdas
+    indexes: [
         {
-            //indice para buscar por usuario
+            //indice para buscar carrito por usuario
             fields: ['usuarioId']
         },
+
         {
-
-        //Indice compuesto : un usuario no puede teber el mismo producto mas de una vez
-        unique: true,
-        fields: ['usuarioId', 'productoId'],
-        name: 'usuario_producto_unique'
-        }
-
-    ],
-
-    /**
-     * hooks acciones automaticas
-     */
-    hooks: {
-        /**
-         * beforeCreate - se ejecuta antes de crear un item en el carrito
-         * valida que este activo y tenga stock suficiente el producto que se esta agregando al carrito
-         */
-        beforeCreate: async (itemCarrito, options) => {
-            const Producto = require('./Producto');
-
-            //buscar el producto
-            const producto = await Producto.findByPk(itemCarrito.productoId);
-            if (!producto) {
-                throw new Error('El producto seleccionado no existe');
-            }
-
-            if (!producto.activo) {
-                throw new Error('No se puede agregar un producto inactivo al carrito');
-            }
-
-            if (!producto.hayStock(itemCarrito.cantidad)) {
-                throw new Error(`Stock insuficiente. Solo hay ${producto.stock} unidades disponibles`);
-            }
-
-            //Guardar el precio actual del producto
-            itemCarrito.precioUnitario = producto.precio
+            //indice para buscar pedidos por estado
+            fields: ['estado']
         },
 
-        /**
-         * beforeUpdate - se ejecuta antes de actualizar un item en el carrito
-         * valida que el producto siga activo y tenga stock suficiente si se aumenta la cantidad
+        {
+            //indice para buscar pedidos por fecha
+            fields: ['createdAt']
+        },
+
+    ],
+    /**
+         * Hooks Acciones automaticas
          */
-        beforeUpdate: async (itemCarrito) => {
-            
-            if (itemCarrito.changed('cantidad')) {
-                const Producto = require('./Producto');
+
+        hooks:{
+            /**
+             *beforeCreate - se ejecuta antes de un item en el carrito
+             *verifica que este activo y tenga stock suficiente para agregarlo al carrito
+             */
+
+             /**beforeCreate: async (itemCatrrito, options) => {
+                const Categoria = require('./Producto');
+
+                //buscar producto
                 const producto = await Producto.findByPk(itemCarrito.productoId);
 
                 if (!producto) {
                     throw new Error('El producto seleccionado no existe');
+
                 }
+
+                if (!producto.activo) {
+                    throw new Error('No se puede crear agregar un producto inactivo al carrito');
+                }
+
                 if (!producto.hayStock(itemCarrito.cantidad)) {
-                    throw new Error(`Stock insuficiente. Solo hay ${producto.stock} unidades disponibles`);
+                    throw new Error(`Stock insuficiente, solo hay ${producto.stock} unidades diisponibles`);
                 }
-            }
-        }
-    }
+
+                //Guardar el precio actual del producto
+                itemCarrito.precioUnitario = producto.precio;
+
+             },
+
+              /**
+             *afterUpdate. se ejecuta despues de actualizar un pedido
+             *actualiza las fechas segun el estado
+             */
+
+            
+            afterUpdate: async (pedido) => {
+                //si es estado cambio a pagado, guardar fecha de pago
+                if (pedido.changed('estado') && pedido.estado === 'Pagado') {
+                    pedido.fechaPago = new Date();
+                    await pedido.save({hooks: false}); // guardar sin ejecutar hooks para evitar loop infinito
+
+                    //si el estado cambio a enviado, guardar fecha de envio
+
+                    if (pedido.changed('estado') && pedido.estado === 'Enviado' && !pedido.fechaEnvio) {
+                        pedido.fechaEnvio = new Date();
+                        await pedido.save({hooks: false}); // guardar sin ejecutar hooks para evitar loop infinito
+                    }
+                }
+
+                     //si el estado cambio a entregado, guardar fecha de entrega
+
+                    if (pedido.changed('estado') && pedido.estado === 'Entregado' && !pedido.fechaEntrega) {
+                        pedido.fechaEntrega = new Date();
+                        await pedido.save({hooks: false}); // guardar sin ejecutar hooks para evitar loop infinito
+                    }
+
+                },
+
+                /**
+                 * beforeDestroy - se ejecuta antes de eliminar un pedido
+                 */
+
+                    beforeDestroy: async () => {
+                        throw new Error('No se puede eliminar un pedido, solo se puede cancelar cambiando su estado a Cancelado');
+
+                    }
+         }
+   
 });
 
-//metodo de instancia
-/**
- * metodo para calcular el subtotal de este item
- *
- * @return {number} - subtotal (precio * cantidad)
- */
-Carrito.prototype.calcularSubtotal = function () {
-    return parseFloat (this.precioUnitario) * this.cantidad;
-};
+// METODOS DE INSTANCIA
 
 /**
- * Metodo para actualizar la cantidad
- * @param {number} nuevaCantidad - la nueva cantidad a establecer
- * @returns {Promise} Item actualizado
+ * Metodo para cambiar el estado del pedido
+ * 
+ * @param {string} nuevoEstado - nuevo estado del pedido
+ * @returns {number} - Subtotal (precio * canridad)
  */
 
-Carrito.prototype.actualizarCantidad = async function (nuevaCantidad){
-    const Producto = require('./Producto');
 
-    const producto = await Producto.findByPk(this.productoId);
-
-    if (!producto.hayStock(nuevaCantidad)) {
-        throw new Error(`Stock insuficiente. Solo hay ${producto.stock} unidades disponibles`);
+Pedido.prototype.cambiarEstado = async function(nuevoEstado) {
+    const estadosValidos = ['Pendiente', 'Pagado', 'Enviado', 'Cancelado'];
+    
+    if (!estadosValidos.includes(nuevoEstado)) {
+        throw new Error(`Estado ivalido.`);
     }
 
-    this.cantidad = nuevaCantidad;
+    this.estado = nuevoEstado;
     return await this.save();
+   
 };
 
 
 /**
- * Metodo para obtener el carrito completo de un usuario
- * incluye informacion de los productos
- * @param {number} usuarioId - ID del usuario
- * @returns {Promise<Array>} - Items del carrito con productos
+ * Metodo para verificar si el pedido se puede cancelar
+ * solo se puede cancelar si el estado es pendiente o pagado
+ * @returns {boolean} - true si se puede cancelar, false si no
  */
 
-Carrito.obtenerCarritoCompleto = async function (usuarioId) {
+Pedido.prototype.puedeSerCancelado = function() {
+    return ['Pendiente', 'Pagado'].includes(this.estado);
+};
+
+/**
+ * Metodo para cancelar pedido
+ * @returns {Promise<Pedido>} Pedido cancelado
+ */
+
+Pedido.prototype.cancelar = async function() {
+    
+    if (!this.puedeSerCancelado()) {
+        throw new Error('No se puede cancelar el pedido, su estado actual no permite la cancelación');
+    }
+
+    //importar modelos
+    
+    const DetallePedido = require('./DetallePedido');
+    const Producto = require('./Producto');
+
+    //Obtener detalles del pedido
+    const detalles = await DetallePedido.findAll({
+        where: { pedidoId: this.id}
+    })
+
+    //Devolver el stock de cada producto
+    for (const detalle of detalles) {
+        const producto = await Producto.findByPk(detalle.productoId);
+        if (producto) {
+            await producto.aumentarStock(detalle.cantidad);
+            console.log(`Stock devuelto: ${detalle.cantidad} X ${producto.nombre}`);
+        }
+    }
+
+    //Cambiar estado a cancelado
+    this.estado = 'Cancelado';
+    return await this.save();
+
+};
+
+/**
+ * Metodo para obtener detalle del pedido con productos
+ * 
+ * @returns {Promise<Pedido>} Pedido con detalles y productos
+ */
+
+
+Pedido.prototype.obtenerDetalleConProductos = async function () {
+    const DetallePedido = require('./DetallePedido');
     const Producto = require('./Producto');
 
     return await this.findAll({
-        where: {usuarioId},
+        where: { pedidoId: this.id },
         include: [
             {
                 model: Producto,
                 as: 'producto'
             }
-        ],
-        order: [['createdAt', 'DESC']]
+        ]
     });
 };
 
 /**
- * Metodo para calcular el total del carrito de un usuario
- * @param {number} usuarioId - ID del usuario
- * @returns {Promise<number>} - Total del carrito
+ * Metodo para obtener pedidos por estado
+ * @param {string} estado - Estado del pedido
+ * @return {Promise<Array>} - Pedidos con el estado especificado
  */
-
-Carrito.calcularTotalCarrito = async function(usuarioId){
-    const items = await this.findAll({ where: { usuarioId } });
+Pedido.obtenerPedidosPorEstado = async function (estado) {
+    const Usuario = require('./Usuario');
+    return await this.findAll({
+        where: { estado },
+        include: [
+            {
+                model: Usuario,
+                as: 'usuario',
+                attributes: ['id', 'nombre', 'email', 'telefono']
+            }
+        ],
+        order: [['createdAt', 'DESC']]
+    });
+};
+    {
 
     let total = 0;
     for (const item of items) {
@@ -327,19 +371,18 @@ Carrito.calcularTotalCarrito = async function(usuarioId){
     return total;
 };
 
-
 /**
- * Metodo para vaciar el carrito de un usuario
- * util despues de realizar un pedido
- * @param {number} usuarioId - ID del usuario
- * @return {Promise<number>} - Numero de items eliminados
+ * Metodo para obtener historial de pedidos de un usuario
+ * @param {number} usuarioId  ID del usuario
+ * @returns {Promise<Array>}  Pedidos del usuario
  */
 
-Carrito.vaciarCarrito = async function(usuarioId){
-    return await this.destroy({
-        where: { usuarioId }
+Pedido.obtenerHistorialUsuario = async function(usuarioId) {
+    return await this.findAll({
+        where: { usuarioId },
+        order: [['createdAt', 'DESC']]
     });
 };
 
-//Exportar modelo
-module.exports = Carrito;
+// Exportar el modelo
+module.exports = Pedido;
