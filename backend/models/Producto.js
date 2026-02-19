@@ -144,7 +144,7 @@ const Producto = sequelize.define('Producto', {
 }, {
     //opciones del modelo
 
-    tableName: 'subcategorias',
+    tableName: 'productos',
     timestamps: true, //crea campos createdAt y updatedAt
 
     /**
@@ -178,7 +178,7 @@ const Producto = sequelize.define('Producto', {
          * valida que la subcategoria y que la categoria padre esten activas
          */
         beforeCreate: async (producto) => {
-            const categoria = require('./categoria');
+            const categoria = require('./Categoria');
             const subcategoria = require('./Subcategoria');
 
             //Buscar subcategoria padre
@@ -217,7 +217,7 @@ subcategoria.findByPk(producto.subcategoriaId);
             if (producto.imagen) {
                 const {deletefile} = require('../config/multer');
                 //Intenta eliminar la imagen del servidor
-                const eliminado = await require('../config/multer');
+                const eliminado = await deletefile(producto.imagen);
                 if (eliminado) {
                     console.log (`imagen eliminada: ${producto.imagen}`);
                 }
@@ -232,7 +232,7 @@ subcategoria.findByPk(producto.subcategoriaId);
  * @param {number} cantidad - cantidad deseada
  * @returns {boolean} - true si hay stock suficiente false si no
  */
-producto.producto.hayStock = function(cantidad = 3) {
+Producto.hayStock = function(cantidad = 3) {
     return this.stock >= cantidad;
 };
 
@@ -243,8 +243,8 @@ producto.producto.hayStock = function(cantidad = 3) {
  * @returns {Promise<Producto>} producto actualizado
  */
 
-producto.prototype.reducirStock = async function (cantidad) {
-    if (this.hayStock(cantidad)) {
+Producto.prototype.reducirStock = async function (cantidad) {
+    if (!this.hayStock(cantidad)) {
         throw new Error('Stock insuficiente');
     }
     this.stock -= cantidad;
@@ -253,4 +253,4 @@ producto.prototype.reducirStock = async function (cantidad) {
 }
 
 //exportar modelo producto
-module.exports = producto;
+module.exports = Producto;
