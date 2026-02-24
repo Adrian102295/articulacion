@@ -1,5 +1,5 @@
 /**
- * controlador de subcategorias
+ * controlador de Producto
  * maneja las operaciones crud y activar y desactivar subcategorias
  * solo accesible por admins
  */
@@ -14,19 +14,19 @@ const Producto = require('../models/Producto');
 
 
 /**
- * obtener todas las subcategorias
+ * obtener todos los productos
  * query params:
  * categoriaId: Id de la categoria para filtrar por categoria
  * activo true/false (filtrar por estado)
- * incluir catrgoria true/false (incluir categoria relacionada)
+ * incluir categoria true/false (incluir categoria relacionada)
  *
  * @param {Object} req request express
  * @param {Object} res response express
  */
 
-const getSubcategorias = async (req, res) => {
+const getProductos = async (req, res) => {
     try {
-        const {categoriaId, activo, incluirCategoria} = req.query;
+        const {subcategoriaId, activo, incluirSubcategoria} = req.query;
 
         //opciones de consulta
         const opciones = {
@@ -35,76 +35,74 @@ const getSubcategorias = async (req, res) => {
 
         //filtros
         const where = {};
-        if (categoriaId) where.categoriaId = categoriaId;
+        if (subcategoriaId) where.subcategoriaId = subcategoriaId;
         if (activo !== undefined) where.activo = activo === 'true';
 
         if (Object.keys(where).length > 0) {
             opciones.where = where;
         }
 
-        //incluir categoria si se solicita
-        if (incluirCategoria === 'true') {
+        //incluir subcategoria si se solicita
+        if (incluirSubcategoria === 'true') {
             opciones.include = [{
-                model: Categoria,
-                as: 'categoria', // campo del alias para la relacion
-                attributes: ['id', 'nombre', 'activo'] //campos a incluir de la categoria
+                model: Subcategoria,
+                as: 'subcategoria', // campo del alias para la relacion
+                attributes: ['id', 'nombre', 'activo'] //campos a incluir de la subcategoria
             }]
         }
 
-        //obtener subcategoria
-        const subcategorias = await subcategoria.findAll (opciones);
+        //obtener productos
+        const productos = await Producto.findAll (opciones);
 
         //respuesta exitosa
         res.json({
             success: true,
-            count: subcategorias.length,
+            count: productos.length,
             data: {
-                subcategorias
+                Productos
             }
         });
 
     } catch (error) {
-        console.error('error en getSubcategorias:', error);
+        console.error('error en getProductos:', error);
         res.status (500).json({
             success: false,
-            message: 'error al obtener subcategorias', error: error.message
+            message: 'error al obtener productos', error: error.message
         })
     }
 };
 
 /**
- * obtener las subcategorias por id
- * GET /api/subcategorias/:id
+ * obtener los productos por id
+ * GET /api/productos/:id
  *
  * @param {Object} req request express
  * @param {Object} res response express
  */
 
-const getSubcategoriasById = async (req, res) => {
+const getProductosById = async (req, res) => {
     try {
         const {id} = req.params;
 
-        //buscar subcategorias con categoria y contar productos
-        const subcategoria = await subcategoria.findByPk(id, {
+        //buscar productos con subcategoria y contar productos
+        const producto = await Producto.findByPk(id, {
             include: [{
-                model: categoria,
-                as: 'categorias',
+                model: Subcategoria,
+                as: 'subcategoria',
                 attributes: ['id', 'nombre', 'activo']
-            },
-            {
-                model: producto,
-                as: 'productos',
-                attributes: ['id']
             }]
         });
+           
 
         //filtrar por estado activo si es especifico
-        if (!subcategoria) {
+        if (!producto) {
             return res.status(404).json({
                 success: false,
-                message: 'subcategoria no encontrada'
+                message: 'producto no encontrado'
             });
         }
+
+        // HASTA AQUI SE A CORREGIDO EL CONTROLLER DE PRODUCTO 
 
         //agregar contador de productos
         const subcategoriaJSON = subcategoria.toJSON();

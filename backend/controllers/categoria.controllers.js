@@ -7,7 +7,7 @@
 /**
  * Importar modelos
  */
-const Categoria = require('../models/Categoria');
+const Categoria = require('../models/categoria')
 const subcategoria = require('../models/Subcategoria');
 const Producto = require('../models/Producto');
 
@@ -36,7 +36,7 @@ const getCategorias = async (req, res) => {
 
         //Incluir subcategorias si se solicita
         if(incluirSubcategorias === 'true') {
-            opciones.include == [{
+            opciones.include = [{
                 model: subcategoria,
                 as: 'subcategorias',
                 attributes: ['id', 'nombre','descripcion', 'activo']
