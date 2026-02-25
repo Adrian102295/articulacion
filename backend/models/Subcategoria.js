@@ -14,7 +14,7 @@ const { type } = require('os');
 /**
  * definir modelo subcategoria
  */
-const subcategoria = sequelize.define('Categoria', {
+const subcategoria = sequelize.define('Subcategoria', {
     //campos de la tabla
     //id identificador unico (primary key)
     id: {

@@ -178,7 +178,7 @@ const Producto = sequelize.define('Producto', {
          * valida que la subcategoria y que la categoria padre esten activas
          */
         beforeCreate: async (producto) => {
-            const categoria = require('./Categoria');
+            const categoria = require('./categoria');
             const subcategoria = require('./Subcategoria');
 
             //Buscar subcategoria padre
