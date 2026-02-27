@@ -8,7 +8,7 @@
 //importar todos los modelos
 
 const Usuario = require('./Usuario');
-const Categoria = require('./Categoria');
+const Categoria = require('./categoria');
 const Subcategoria = require('./Subcategoria');
 const Producto = require('./Producto');
 const Carrito = require('./Carrito');
