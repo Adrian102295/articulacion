@@ -212,7 +212,7 @@ const esAdminOAuxiliar = (req, res, next) => {
             });
         }
 
-        //el usuario es administrador o auxiliar continuar
+        //el usuario es administrador continuar
         next();
 
     }catch (error) {

@@ -8,7 +8,7 @@
  * importar modelos
  */
 
-const subcategoria = require('../models/subcategoria');
+const subcategoria = require('../models/Subcategoria');
 const Categoria = require('../models/categoria');
 const Producto = require('../models/Producto');
 
