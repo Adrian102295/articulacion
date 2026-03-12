@@ -54,6 +54,7 @@ app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true, // permite enviar cookies y credenciales en las solicitudes
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], // métodos HTTP permitidos
+    allowedHeaders: ['Content-Type', 'Authorization'], // encabezados permitidos
 }));
 
 
@@ -75,7 +76,7 @@ app.use(express.urlencoded({ extended: true }));
  * servir archivos estaticos de la carpeta raiz
  */
 
-app.use('uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 //middleware para loggin de peticiones
 //muestra en consola cada peticion que llega al servidor
@@ -104,7 +105,7 @@ app.get('/', (req, res) => {
 
 //ruta de salud verifica como esta el servidor
 
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
     res.json({
         success: true,
         status: 'healthy',
@@ -134,7 +135,7 @@ app.use('/api/admin', adminRoutes);
 //Rutas del cliente
 
 const clienteRoutes = require('./routes/cliente.routes');
-app.use('/api/cliente', clienteRoutes);
+app.use('/api', clienteRoutes);
 
 
 //Manejo de rutas no encontradas (404)

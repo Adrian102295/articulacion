@@ -368,7 +368,7 @@ Pedido.obtenerPedidosPorEstado = async function (estado) {
     for (const item of items) {
         total += item.calcularSubtotal();
     }
-    return total;
+            return total;
 };
 
 /**

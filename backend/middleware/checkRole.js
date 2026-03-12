@@ -25,6 +25,8 @@ const esAdministrador = (req, res, next) => {
 
         //el usuario es administrador continuar
         next();
+
+
     }catch (error) {
         console.error('Error en middleware esAdministrador', error);
         return res.status(500).json({
@@ -59,6 +61,8 @@ const esCliente = (req, res, next) => {
 
         //el usuario es cliente continuar
         next();
+
+
     }catch (error) {
         console.error('Error en middleware esCliente', error);
         return res.status(500).json({
@@ -231,6 +235,7 @@ const esAdminOAuxiliar = (req, res, next) => {
 module.exports = {
     esAdministrador,
     esCliente,
+    tieneRol,
     esPropioUsuarioOAdmin,
     esAdminOAuxiliar,
     soloAdministrador

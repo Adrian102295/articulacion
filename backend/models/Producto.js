@@ -8,8 +8,7 @@ const { DataTypes } = require('sequelize');
 
 //importar instancia de sequelize
 const { sequelize } = require('../config/database');
-const { table } = require('console');
-const { type } = require('os');
+
 
 /**
  * definir el modelo de producto
@@ -32,8 +31,8 @@ const Producto = sequelize.define('Producto', {
                 msg: 'El nombre del producto no puede estar vacio'
             },
             len:{
-                args: [2,200],
-                msg: 'el nombre debe tener entre 2 y 200 caracteres'
+                args: [3,200],
+                msg: 'el nombre debe tener entre 3 y 200 caracteres'
             }
         }
     },
@@ -48,7 +47,7 @@ const Producto = sequelize.define('Producto', {
 
     //Precio del producto
     precio:{
-        type: DataTypes.DECIMAL(10,2), //hasta 99,999,
+        type: DataTypes.DECIMAL(10,2), //hasta 99,999,999,99
         allowNull: false,
         validate: {
             isDecimal: {
@@ -68,7 +67,7 @@ const Producto = sequelize.define('Producto', {
         defaultValue:0,
         validate: {
             isInt: {
-                msg: 'El stock debe ser un numero entero valido'
+                msg: 'El stock debe ser un numero entero '
             },
             min: {
                 args: [0],
@@ -182,14 +181,13 @@ const Producto = sequelize.define('Producto', {
             const subcategoria = require('./Subcategoria');
 
             //Buscar subcategoria padre
-            const subcategoria = await
-subcategoria.findByPk(producto.subcategoriaId);
+            const subcategoria = await subcategoria.findByPk(producto.subcategoriaId);
             if (!subcategoria) {
                 throw new Error('la subcategoria seleccionada no existe');
             }
 
             if (!subcategoria.activo) {
-                throw new Error('no se puede crear un producto en unacategoria inactiva');
+                throw new Error('no se puede crear un producto en una subcategoria inactiva');
             }
 
             //Buscar categoria padre
@@ -199,12 +197,12 @@ subcategoria.findByPk(producto.subcategoriaId);
             }
 
             if (!categoria.activo) {
-                throw new Error('no se puede crear un producto en unacategoria inactiva');
+                throw new Error('no se puede crear un producto en una categoria inactiva');
             }
 
             //Validar que la subcategoria pretenezca a una categoria
             if (subcategoria.categoriaId !==producto.categoriaId) {
-                throw new Error ('La subcategoria no perteece a lacategoria seleccionada');
+                throw new Error ('La subcategoria no pertenece a la categoria seleccionada');
             }
         },
 
@@ -226,14 +224,32 @@ subcategoria.findByPk(producto.subcategoriaId);
     }
 });
 
+
+
+ /**
+  * Metodo para obtener la url completa
+  *  @returns {string|null} url de la imagen
+  */
+
+Producto.prototype.getImagenUrl = function() {
+    if (!this.imagen) {
+        return null;
+    }
+
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
+    return `${baseUrl}/uploads/${this.imagen}`;
+};
+
+
+
 /**
  * metodo para verificar si hay stock disponible
  *
  * @param {number} cantidad - cantidad deseada
  * @returns {boolean} - true si hay stock suficiente false si no
  */
-Producto.hayStock = function(cantidad = 3) {
-    return this.stock >= cantidad;
+Producto.prototype.hayStock = function(cantidad = 3) {
+    return this.stock >= cantidad;      
 };
 
 /**
@@ -250,7 +266,22 @@ Producto.prototype.reducirStock = async function (cantidad) {
     this.stock -= cantidad;
     return await this.save();
 
+};
+
+
+/**
+ * Metdo para aumentar el stock
+ * util al recibir una venta o al actualizar inventario
+ * @param {number} cantidad - cantidad a aumentar
+ * @returns {Promise<Producto>} producto actualizado
+ */
+
+Producto.prototype.aumentarStock = async function (cantidad) {
+    this.stock += cantidad;
+    return await this.save();
 }
+
+
 
 //exportar modelo producto
 module.exports = Producto;

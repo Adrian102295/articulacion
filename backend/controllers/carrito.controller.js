@@ -1,68 +1,70 @@
 /**
- * Controlador para el carrito de compras
- * gestion de carrito
+ * controlador de carrito de compras
+ * Gestion de carrito
  * requiere autenticacion
  */
 
- //importar modelos
-
-
-
-
-const Carrito = require('../models/Carrito')
-const Producto = require('../models/Producto')
-const Categoria = require('../models/categoria')
-const Subcategoria = require('../models/Subcategoria')
-
+//Importar Modelos
+const Carrito = require('../models/carrito');
+const Producto = require('../models/Producto');
+const Categoria = require('../models/categoria');
+const Subcategoria = require('../models/Subcategoria');
 
 /**
- * Obtener el carrito del usuario autenticado
- * Get /api/carrito
- * @param {Object} req request express con req usuario del middleware
- * @param {Object} res response express
+ * obtener carrito del usuario autenticado
+ * GET / api / carrito
+ * @param {object} req request de express con req. usuario del middleware
+ * @param {object} res response de express
  */
 
 const getCarrito = async (req, res) => {
-    try{
-        //obtener items del carrito con los productos relacionados
-        const itemCarrito = await Carrito.findAll({
-            where: {usuarioId: req.usuario.id},
+    try {
+        // obtener items del carrito con los productos relacionados
+        const itemsCarrito = await Carrito.findAll({
+            where: { usuarioId: req.usuario.id },
             include: [
                 {
                     model: Producto,
                     as: 'producto',
                     attributes: ['id', 'nombre', 'descripcion', 'precio', 'stock', 'imagen', 'activo'],
-                    include: {
-                        model: Categoria,
-                        as: 'categoria',
-                        attributes: ['id', 'nombre']
-
-                    }
+                    include: [
+                        {
+                            model: Categoria,
+                            as: 'categoria',
+                            attributes: ['id', 'nombre']
+                        },
+                        {
+                            model: Subcategoria,
+                            as: 'subcategoria',
+                            attributes: ['id', 'nombre']
+                        },
+                    ]
                 }
+
             ],
             order: [['createdAt', 'DESC']]
         });
 
-        //calcular el total del carrito
-        let totalCarrito = 0;
-        itemsCarrito.forEach(item => {
-            totalCarrito += parseFloat(item.producto.precio) * item.cantidad;
+        //Calcular el total del carrito
+        let total = 0;
+        itemsCarrito.forEach((item) => {
+            total += parseFloat(item.PrecioUnitario) * item.cantidad;
         });
 
-        //respuesta exitosa
+        // Respuesta Exitosa
         res.json({
             success: true,
             data: {
                 items: itemsCarrito,
                 resumen: {
-                    totalItems: itemsCarrito.length,
+                    totalItem: itemsCarrito.length,
                     cantidadTotal: itemsCarrito.reduce((sum, item) => sum + item.cantidad, 0),
-                    totalCarrito: totalCarrito.toFixed(2)
+                    total: total.tofixed(2)
                 }
             }
         });
     } catch (error) {
-        console.error('Error en getCarrito:', error);
+        console.error('Error en getCarrito', error);
         res.status(500).json({
             success: false,
             message: 'Error al obtener el carrito',
@@ -73,166 +75,166 @@ const getCarrito = async (req, res) => {
 
 
 /**
- * agregar producto al carrito
- * post/api/carrito
+ * Agregar producto a carrito 
+ * POST/api/carrito
  * @param {Object} req request express
- * @param {object} res response express
+ * @param {Object} res response express
  */
-
 const agregarAlCarrito = async (req, res) => {
     try {
         const { productoId, cantidad = 1 } = req.body;
 
-        //validacion 1: campos requeridos
-        if (!productoId){
+        //validacion 1 : Campos requeridos
+        if (!productoId) {
             return res.status(400).json({
                 success: false,
-                message: 'El producto es requerido'
+                message: 'El productoId es requerido'
             });
         }
 
-        //Validacion 2: Cantidad valida
-        const cantidadNUm = parseInt(cantidad);
-        if (cantidadNUm < 1) {
-            return res.status(400).json({
-                success: false,
-                message: 'La cantidad debe ser al menos 1'
-            });
-        }
-
-        //validacion 3: producto existe y esta activo
-        const producto = await Producto.findByPk(productoId);
-        if (!producto){
-            return res.status(404).json({
-                success: false,
-                message: 'Producto no encontrado'
-            });
-        }
-
-        if (!producto.activo){
-            return res.status(400).json({
-                success: false,
-                message: 'El producto no esta disponible'
-            });
-        }
-
-        //validacion 4: verificar si ya existe en el carrito
-        let itemExistente = await Carrito.findOne({
-            where: {
-                usuarioId: req.usuario.id,
-                productoId
-            }
-        });
-
-        if(itemExistente) {
-            //actualizar cantidad
-            const nuevaCantidad = itemExistente.cantidad + cantidadNUm;
-
-            //validar stock disponible
-            if (nuevaCantidad > producto.stock) {
-                return res.status(400).json({
-                    success: false,
-                    message: `No hay suficiente stock. Stock disponible: ${producto.stock}, En carrito: ${itemExistente.cantidad}`
-                });
-            }
-
-            itemExistente.cantidad = nuevaCantidad;
-            await itemExistente.save();
-
-            //Recargar Producto
-            await itemExistente.reload({
-                include: [{
-                    model: Producto,
-                    as: 'Producto',
-                    attributes: ['id', 'nombre', 'descripcion', 'precio', 'stock', 'imagen']
-                }]
-            });
-
-        return res.json({
-            success: true,
-            message: 'Cantidad actualizada en el carrito',
-            data: itemExistente
-        });
-        
-    }
-
-    //validacion 5:
-
-    if (cantidadNUm > producto.stock){
-        return res.status(400).json({
-            success: false,
-            message: `stock insuficiente. disponible: ${producto.stock}`
-        });
-    }
-
-    //crear nuevo item en el carrito
-    const nuevoItem = await Carrito.create({
-        usuarioId: req.usuario.id,
-        productoId,
-        cantidad: cantidadNUm,
-        precioUnitario: producto.precio
-    });
-
-    //Recargar con producto
-    await nuevoItem.reload({
-        include: [{
-            model: Producto,
-            as: 'Producto',
-            attributes: ['id', 'nombre', 'descripcion', 'precio', 'stock', 'imagen']
-        }]
-    });
-
-    //respuesta exitosa
-    res.status(201).json({
-        success: true,
-        message: 'Producto agregado al carrito',
-        data: { 
-            nuevoItem }
-    });
-
-    }catch (error) {
-        console.error('Error en AgregarAlCarrito:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error al agregar producto al carrito',
-            error: error.message
-        });
-    } 
-};
-
-/** Actualizar cantidad de item del carrito
- * Put /api/carrito/:id
- * Body: { cantidad }
- * @param {Object} req request express
- * @param {object} res response express
- */
-
-const actualizarItemCarrito = async (req, res) =>{
-    try {
-        const { id } = req.params;
-        const { cantidad } = req.body;
-
-        //validar cantidad
+        // validacion 2 cantidad valida
         const cantidadNum = parseInt(cantidad);
-        if (cantidadNum < 1)  {
+        if (cantidadNum < 1) {
             return res.status(400).json({
                 success: false,
                 message: 'la cantidad debe ser al menos 1'
             });
         }
 
-        // Buscar item del carrito 
+        //validacion 3: prodcto existe y esta activo
+        const producto = await Producto.findByPk(ProductoId);
+
+        if (!producto) {
+            return res.status(400).json({
+                success: false,
+                message: 'Producto no encontrado'
+            });
+        }
+
+        if (!producto.activo) {
+            return res.status(400).json({
+                success: false,
+                message: 'Producto no disponible'
+            });
+        }
+
+        // Validacion 4 verificar si ya existe en el carrito
+        const itemExistente = await Carrito.findOne({
+            where: {
+                usuarioId: req.usuario.id,
+                productoId
+            }
+        });
+
+        if (itemExistente) {
+            //actualizar cantidad
+            const nuevaCantidad = itemExistente.cantidad + cantidadNum;
+
+            // validar stock disponible
+            if (nuevaCantidad > producto.stock) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Stock insuficiente. disponible : ${producto.stock}, En carrito: ${itemExistente.cantidad}`
+                });
+            }
+
+            itemExistente.cantidad = nuevaCantidad;
+            await itemExistente.save();
+
+            //Recargar producto
+            await itemExistente.reload({
+                include: [{
+                    model: Producto,
+                    as: 'producto',
+                    attributes: ['id', 'nombre', 'precio', 'stock', 'imagen']
+                }]
+            });
+
+            return res.json({
+                success: true,
+                message: 'Cantidad actualizada en el carrito',
+                data: {
+                    item: itemExistente
+                }
+            });
+        }
+
+        //Validacion 5 stock disponible
+        if (cantidadNUm > producto.stock) {
+            return res.status(400).json({
+                success: false,
+                message: `Stock insuficiente. Disponible: ${producto.stock}`
+            });
+        }
+
+        //crear un nuevo ite en el carrito
+        const nuevoItem = await Carrito.create({
+            usuarioId: req.usuario.id,
+            productoId,
+            cantidad: cantidadNum,
+            PrecioUnitario: producto.precio
+        });
+
+        //Recarga con producto
+        await nuevoItem.reload({
+            include: [{
+                model: Producto,
+                as: 'producto',
+                atributtes: ['id', 'nombre', 'precio', 'stock', 'imagen']
+            }]
+        });
+
+        //Respuesta exitosa
+        res.status(201).json({
+            success: true,
+            message: 'producto agragado al carrito',
+            data: {
+                item: nuevoItem
+            }
+        });
+    } catch (error) {
+        console.error('Error en agragarAlCarrito:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al agregar producto al carrito',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Actualizar cantidad de item del carrito
+ * PUT /api/carrito/:id
+ * Body {cantidad}
+ * @param {Objet} req request express
+ * @param {Objet} res response express
+ */
+
+const actualizarItemCarrito = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { cantidad } = req.body;
+
+        //validar cantidad
+        const cantidadNum = parseInt(cantidad);
+        if (cantidadNum < 1) {
+            return res.status(400).json({
+                success: false,
+                message: 'La cantidad debe ser al menos 1'
+            });
+        }
+
+        //Buscar item del carrito
         const item = await Carrito.findOne({
             where: {
                 id,
-                usuarioId: req.usuario.id //solo puede modificar su propio carrito
-            
+                usuarioId: req.usuario.id //Solo puede modirficar su carrito
             },
 
             include: [{
                 model: Producto,
-                as: 'Producto',
-                attributes: ['id', 'nombre', 'descripcion', 'precio', 'stock']
+                as: 'producto',
+                attributes: ['id', 'nombre', 'precio', 'stock']
             }]
         });
 
@@ -242,20 +244,20 @@ const actualizarItemCarrito = async (req, res) =>{
                 message: 'Item del carrito no encontrado'
             });
         }
-        
+
         //validar stock disponible
-        if (cantidadNum > item.Producto.stock) {
+        if (cantidadNum > item.producto.stock) {
             return res.status(400).json({
                 success: false,
-                message: `Stock insuficiente. Disponible: ${item.Producto.stock}`
+                message: `Stock insuficiente. Disponible: ${item.producto.stock}`
             });
         }
 
-        // actualizar cantidad
+        //actualizar cantidad
         item.cantidad = cantidadNum;
         await item.save();
 
-        //Respuesta exitosa
+        //Respuesta Exitosa
         res.json({
             success: true,
             message: 'Cantidad actualizada',
@@ -263,8 +265,8 @@ const actualizarItemCarrito = async (req, res) =>{
                 item
             }
         });
-    }catch (error) {
-        console.error('Error en actualizar ItemCarrito:', error);
+    } catch (error) {
+        console.error('Error en actuializar ItemCarrito:', error);
         res.status(500).json({
             success: false,
             message: 'Error al actualizar item del carrito',
@@ -282,8 +284,8 @@ const eliminarItemCarrito = async (req, res) => {
     try {
         const { id } = req.params;
 
-        //Buscar item 
-        const item =  await Carrito.FindOne({
+        //Buscar Item
+        const item = await Carrito.findOne({
             where: {
                 id,
                 usuarioId: req.usuario.id
@@ -293,11 +295,11 @@ const eliminarItemCarrito = async (req, res) => {
         if (!item) {
             return res.status(400).json({
                 success: false,
-                message: 'Item no encontrado en el carrito'
+                message: 'Item no encontrtado en el carrito'
             });
         }
 
-        //Eliminar item
+        //Eliminar
         await item.destroy();
 
         //Respuesta exitosa
@@ -305,8 +307,8 @@ const eliminarItemCarrito = async (req, res) => {
             success: true,
             message: 'Item eliminado del carrito'
         });
-    }catch (error) {
-        console.error('Error en eliminarItemCarrito:', error);
+    } catch (error) {
+        console.error('Error en eliminarItemCarrito;', error);
         res.status(500).json({
             success: false,
             message: 'Error al eliminar item del carrito',
@@ -315,29 +317,27 @@ const eliminarItemCarrito = async (req, res) => {
     }
 };
 
-
 /**
  * Vaciar todo el carrito
  * DELETE /api/carrito/vaciar
  * 
  */
 
-const vaciarCarrito = async (req,res) => {
+const vaciarCarrito = async (req, res) => {
     try {
         //Eliminar todos los items del usuario
-        const itemsEliminados = await Carrito.destroy({
-            where: {
-                usuarioId: req.usuario.id}
+        const numEliminados = await Carrito.destroy({
+            where: { usuarioId: req.usuario.id }
         });
 
         res.json({
             success: true,
-            message: `Carrito vaciado`,
+            message: 'Carrito vaciado',
             data: {
                 itemsEliminados
             }
         });
-    }catch (error) {
+    } catch (error) {
         console.error('Error en vaciarCarrito:', error);
         res.status(500).json({
             success: false,
@@ -347,14 +347,11 @@ const vaciarCarrito = async (req,res) => {
     }
 };
 
-
-//Exportar controladores
-
+// Exportart controladores
 module.exports = {
     getCarrito,
     agregarAlCarrito,
     actualizarItemCarrito,
     eliminarItemCarrito,
     vaciarCarrito
-}
-
+};

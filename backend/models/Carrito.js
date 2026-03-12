@@ -13,6 +13,7 @@ const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 
 
+
 /**
  * Definir el modelo de Carrito
  */
