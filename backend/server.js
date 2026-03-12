@@ -27,7 +27,7 @@ require('dotenv').config();
 
 
 //importar configuracion de la base de datos
-const dnConfig = require('./config/database');
+const { testConnection, syncDatabase } = require('./config/database');
 
 //importar modelos y asociasciones
 const { initAssociations } = require('./models');
@@ -121,14 +121,14 @@ app.get('/api/health', (req, res) => {
 //incluye registro login, perfil
 
 
-const authRoutes = require('./routes/authRoutes');
+const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
 
 //Rutas del administrador
 //requieren autenticacion y rol de administrador
 
 
-const adminRoutes = require('./eoutes/admin.routes');
+const adminRoutes = require('./routes/admin.routes');
 app.use('/api/admin', adminRoutes);
 
 
@@ -160,17 +160,13 @@ app.use((err, req, res, next) => {
             error: err.message
         });
     }
+    return res.status(500).json({
+        success: false,
+        message: err.message || 'Error interno del servidor',
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack }), // mostrar stack solo en desarrollo
+    });
 });
 
-
-
-//otros errores
-
-res.status(500).json({
-    success: false,
-    message: err.message || 'Error interno del servidor',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }), // mostrar stack solo en desarrollo
-});
 
 
 //inicializar servidor y base de datos

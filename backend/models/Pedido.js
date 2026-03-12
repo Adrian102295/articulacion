@@ -362,14 +362,6 @@ Pedido.obtenerPedidosPorEstado = async function (estado) {
         order: [['createdAt', 'DESC']]
     });
 };
-    {
-
-    let total = 0;
-    for (const item of items) {
-        total += item.calcularSubtotal();
-    }
-            return total;
-};
 
 /**
  * Metodo para obtener historial de pedidos de un usuario

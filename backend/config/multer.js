@@ -91,12 +91,12 @@ const fileFilter = function (req, file, cb) {
  */
 
 const upload = multer({
-    strorage: storage,
+    storage: storage,
     fileFilter: fileFilter,
     limits: {
         //Limite del tamaño del archivo en bytes
         //por defecto 5mb (5*1024) 52428800 bytes
-        fileSize: paseInt(process.env.MAX_FILE_SIZE) || 52428800
+        fileSize: parseInt(process.env.MAX_FILE_SIZE, 10) || 52428800
         
     }
 });
@@ -116,11 +116,11 @@ const deletefile = (filename) => {
         //verificar si el archivo existe
         if (fs.existsSync(filePath)) {
             //eliminar el archivo
-            fs.unlinkSync(filepath);
-            console.log('archivo eliminado: ${filename}');
+            fs.unlinkSync(filePath);
+            console.log(`archivo eliminado: ${filename}`);
             return true;
         }else {
-            console.log('archivo no encontrado: ${filename}');
+            console.log(`archivo no encontrado: ${filename}`);
             return false;
         }
     }catch (error) {

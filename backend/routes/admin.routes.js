@@ -79,7 +79,7 @@ router.get('/subcategorias/:id', subcategoriaController.eliminarSubcategoria);
 router.get('/productos', productoController.getProductos);
 
 // get /api/admin/productos
-router.get('/productos/:id', productoController.getProductosById);
+router.get('/productos/:id', productoController.getProductoById);
 
 // get /api/admin/productos/:id/stats
 //router.get('/productos:id/stats', productoController.getEstadisticasProducto);

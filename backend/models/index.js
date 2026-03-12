@@ -173,12 +173,6 @@ DetallePedido.belongsTo(Pedido, { foreignKey: 'pedidoId', // Campo que conecta l
     onUpdate: 'CASCADE' // Si se actualiza un producto, se actualiza en sus detalles
 });
 
-Subcategoria.belongsTo(Categoria, { foreignKey: 'categoriaId', // Campo que conecta las tablas
-    as: 'categoria', // Alias para la relacion
-    onDelete: 'RESTRICT', // Si se borra una subcategoria, se borra su categoria
-    onUpdate: 'CASCADE' // Si se actualiza una subcategoria, se actualiza en su categoria
-});
-
 
 
 /**
@@ -186,14 +180,14 @@ Subcategoria.belongsTo(Categoria, { foreignKey: 'categoriaId', // Campo que cone
  */
 
 
-Pedido.hasMany(Producto, { through: 'DetallePedido', // Campo que conecta las tablas
+Pedido.belongsToMany(Producto, { through: 'DetallePedido', // Campo que conecta las tablas
     foreignKey: 'pedidoId', // Campo que conecta las tablas
     otherKey: 'productoId', // Campo que conecta las tablas
     as: 'productos', // Alias para la relacion
    
 });
 
-Producto.hasMany(Pedido, { through: 'DetallePedido', // Campo que conecta las tablas
+Producto.belongsToMany(Pedido, { through: 'DetallePedido', // Campo que conecta las tablas
     foreignKey: 'productoId', // Campo que conecta las tablas
     otherKey: 'pedidoId', // Campo que conecta las tablas
     as: 'pedidos', // Alias para la relacion
