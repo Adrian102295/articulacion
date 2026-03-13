@@ -21,7 +21,7 @@ const Subcategoria = require('../models/Subcategoria');
 
 const crearPedido = async (req, res) => {
     const {sequelize} = require('../config/database')
-    const t = await sequelize.transaccion();
+    const t = await sequelize.transaction();
 
     try {
         const { direccionEnvio, telefono, metodoPago = 'efectivo', notasAdicionales } = req.body;
@@ -31,7 +31,7 @@ const crearPedido = async (req, res) => {
         if (!direccionEnvio || direccionEnvio.trim() === '')
             
             {
-            await t.rolback();
+            await t.rollback();
             return res.status(400).json({
                 success: false,
                 message: 'Direccion de envio es requerida'
@@ -56,20 +56,20 @@ const crearPedido = async (req, res) => {
             await t.rollback();
             return res.status(400).json({
                 success: false,
-                message:  `metodo de pago invalido, opciones: ${metodosValidos,join(',')}`
+                message:  `metodo de pago invalido, opciones: ${metodosValidos.join(',')}`
             });
         }
 
         // obtener items del carrito
 
-        const carritoItems = await Carrito.findAll({
+        const itemsCarrito = await Carrito.findAll({
             where: {
-                usuarioId: req.user.usuarioId
+                usuarioId: req.usuario.id
             },
             include: [{
                 model: Producto,
                 as: 'producto',
-                atributes: ['id', 'nombre', 'precio', 'stock', 'activo']
+                attributes: ['id', 'nombre', 'precio', 'stock', 'activo']
             }],
             transaction: t
         });
@@ -105,10 +105,10 @@ const crearPedido = async (req, res) => {
 
             }
 
-        }
-
             //Calcular total
-            totalPedido += parseFloat (item.precioUnitario) * item.cantidad;
+            totalPedido += parseFloat(item.precioUnitario) * item.cantidad;
+
+        }
         
 
         // su hay errores de validacion retornar
@@ -123,13 +123,14 @@ const crearPedido = async (req, res) => {
 
         //crear pedido
         const pedido = await Pedido.create({
-            usuarioId: req.user.usuarioId,
+            usuarioId: req.usuario.id,
+            nombre: `Pedido ${Date.now()}`,
+            descripcion: null,
             total: totalPedido,
-            estado: 'pendiente',
+            estado: 'Pendiente',
             direccionEnvio,
             telefono,
-            metodoPago,
-            notasAdicionales
+            notas: notasAdicionales || req.body.notas || null
 
         
         }, {transaction: t });
@@ -144,6 +145,8 @@ const crearPedido = async (req, res) => {
         const detalle = await DetallePedido.create({
             pedidoId: pedido.id,
             productoId: producto.id,
+            nombre: producto.nombre,
+            descripcion: producto.descripcion || null,
             cantidad : item.cantidad,
             precioUnitario: item.precioUnitario,
             subtotal: parseFloat (item.precioUnitario) * item.cantidad
@@ -193,7 +196,7 @@ const crearPedido = async (req, res) => {
         //Respuesta exitosa
     
 
-        res.json({
+        res.status(201).json({
             success: true,
             message: 'Pedido creado exitosamente',
             data: {
@@ -290,14 +293,13 @@ const getMisPedidos = async (req, res ) => {
  * solo puede ver sus pedidos admin todos
  */
 
-const getPedidoById = async (rec , res ) => {
+const getPedidoById = async (req , res ) => {
     try{
         const { id } = req.params;
         // construir filtros (cliente solo ve pedido admin ve todos)
         const where = {id};
         if (req.usuario.rol !== 'administrador'){
-
-            where.usuarioId
+            where.usuarioId = req.usuario.id;
         }
 
         //Buscar pedido 
@@ -320,12 +322,12 @@ const getPedidoById = async (rec , res ) => {
                             {
                                 model: Categoria,
                                 as: 'categoria',
-                                attribute: ['id', 'nombre']
+                                attributes: ['id', 'nombre']
                             },
                             {
                                 model: Subcategoria,
                                 as: 'subcategoria',
-                                attribute: ['id', 'nombre']
+                                attributes: ['id', 'nombre']
                             }
                         ]
                     }]
@@ -475,16 +477,7 @@ const getAllPedidos = async (req, res) => {
                 model: Usuario,
                 as: 'usuario',
                 attributes: ['id', 'nombre', 'email']
-            },
-            {model: DetallePedido,
-                as: 'detalles',
-                include: [{
-                    model: Producto,
-                    as: 'producto',
-                    attributes: ['id', 'nombre', 'imagen']
-                }]
-            },
-        ],
+            }],
 
         limit: parseInt(limite),
         offset,
@@ -539,7 +532,7 @@ const actualizarEstadoPedido = async (req, res) => {
         }
 
         //Buscar pedido
-        const pedido = await pedido.findByPk(id);
+        const pedido = await Pedido.findByPk(id);
         if (!pedido) {
             return res.status(404).json({
                 success: false,

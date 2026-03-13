@@ -351,10 +351,10 @@ const actualizarProducto = async (req, res) => {
         }
 
          // Validar si cambia la| categoria y subcategoria
-           if (categoriaId && subcategoriaId !== producto.categoriaId) {
+           if (categoriaId && parseInt(categoriaId) !== producto.categoriaId) {
             const categoria = await Categoria.findByPk(categoriaId);
 
-            if (categoria || !categoria.activo) {
+            if (!categoria || !categoria.activo) {
                 return res.status(404).json({
                     success: false,
                     message: 'categoria invalida o inactiva'
@@ -365,7 +365,7 @@ const actualizarProducto = async (req, res) => {
          if (subcategoriaId && subcategoriaId !== producto.subcategoriaId) {
             const subcategoria = await Subcategoria.findByPk(subcategoriaId);
 
-            if (subcategoria || !subcategoria.activo) {
+            if (!subcategoria || !subcategoria.activo) {
                 return res.status(404).json({
                     success: false,
                     message: 'subcategoria invalida o inactiva'
@@ -374,7 +374,7 @@ const actualizarProducto = async (req, res) => {
 
             const catId = categoriaId || producto.categoriaId
 
-            if (!subcategoria.categoriaId !== parseInt(catId)) {
+            if (subcategoria.categoriaId !== parseInt(catId)) {
                 return res.status(404).json({
                     success: false,
                     message: 'La subcategoria no pertenece a la categoria seleccionada'

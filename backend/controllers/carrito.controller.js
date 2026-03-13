@@ -5,7 +5,7 @@
  */
 
 //Importar Modelos
-const Carrito = require('../models/carrito');
+const Carrito = require('../models/Carrito');
 const Producto = require('../models/Producto');
 const Categoria = require('../models/categoria');
 const Subcategoria = require('../models/Subcategoria');
@@ -48,7 +48,7 @@ const getCarrito = async (req, res) => {
         //Calcular el total del carrito
         let total = 0;
         itemsCarrito.forEach((item) => {
-            total += parseFloat(item.PrecioUnitario) * item.cantidad;
+            total += parseFloat(item.precioUnitario) * item.cantidad;
         });
 
         // Respuesta Exitosa
@@ -59,7 +59,7 @@ const getCarrito = async (req, res) => {
                 resumen: {
                     totalItem: itemsCarrito.length,
                     cantidadTotal: itemsCarrito.reduce((sum, item) => sum + item.cantidad, 0),
-                    total: total.tofixed(2)
+                    total: total.toFixed(2)
                 }
             }
         });
@@ -102,7 +102,7 @@ const agregarAlCarrito = async (req, res) => {
         }
 
         //validacion 3: prodcto existe y esta activo
-        const producto = await Producto.findByPk(ProductoId);
+        const producto = await Producto.findByPk(productoId);
 
         if (!producto) {
             return res.status(400).json({
@@ -160,7 +160,7 @@ const agregarAlCarrito = async (req, res) => {
         }
 
         //Validacion 5 stock disponible
-        if (cantidadNUm > producto.stock) {
+        if (cantidadNum > producto.stock) {
             return res.status(400).json({
                 success: false,
                 message: `Stock insuficiente. Disponible: ${producto.stock}`
@@ -170,9 +170,11 @@ const agregarAlCarrito = async (req, res) => {
         //crear un nuevo ite en el carrito
         const nuevoItem = await Carrito.create({
             usuarioId: req.usuario.id,
+            nombre: producto.nombre,
+            descripcion: producto.descripcion || null,
             productoId,
             cantidad: cantidadNum,
-            PrecioUnitario: producto.precio
+            precioUnitario: producto.precio
         });
 
         //Recarga con producto
@@ -180,7 +182,7 @@ const agregarAlCarrito = async (req, res) => {
             include: [{
                 model: Producto,
                 as: 'producto',
-                atributtes: ['id', 'nombre', 'precio', 'stock', 'imagen']
+                attributes: ['id', 'nombre', 'precio', 'stock', 'imagen']
             }]
         });
 
@@ -334,7 +336,7 @@ const vaciarCarrito = async (req, res) => {
             success: true,
             message: 'Carrito vaciado',
             data: {
-                itemsEliminados
+                itemsEliminados: numEliminados
             }
         });
     } catch (error) {

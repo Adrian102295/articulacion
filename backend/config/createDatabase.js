@@ -27,10 +27,11 @@ const createDatabase = async () => {
         console.log('Conexión establecida con MySQL.\n');
 
         // crear la base de datos si no existe
-        const dbName = process.env.DB_NAME || 'eccommerce_db';
+        const dbName = process.env.DB_NAME || 'ecommerce_db';
         console.log(`Creando la base de datos "${dbName}"...`);
 
-        await connection.query(`CREATE DATABASE IF NOT EXISTS \`'${dbName}``'creada/verificada exitosamente.\n`);
+        await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
+        console.log(`Base de datos '${dbName}' creada/verificada exitosamente.\n`);
 
         //cerrar conexion
         await connection.end();

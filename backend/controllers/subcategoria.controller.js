@@ -152,7 +152,7 @@ const crearSubcategoria =async (req, res) => {
         }
 
         //Validacion 2 verificar si la categoria exista
-        const categoria = await categoria.findByPk(categoriaId);
+        const categoria = await Categoria.findByPk(categoriaId);
         if (!categoria) {
             return res.status(404).json({
                 success: false,
@@ -161,7 +161,7 @@ const crearSubcategoria =async (req, res) => {
         }
 
         //Validacion 3 verifica si la categoria esta activa
-        if (!categoria.activa){
+        if (!categoria.activo){
             return res.status(400).json({
                 success: false,
                 message: `La categoria con id ${categoria.nombre} no se encuentra activa, debe activarla`
@@ -395,7 +395,7 @@ const eliminarSubcategoria = async (req, res) => {
             }
 
             //validacion verificar que no tenga productos
-            const producto = await Producto.count({
+            const productos = await Producto.count({
                 where: {subcategoriaId: id}
             });
 

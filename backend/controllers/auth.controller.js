@@ -8,7 +8,7 @@
  * Importar modelos
  */
 const Usuario = require ('../models/Usuario');
-const { generarToken } = require ('../config/jwt');
+const { generateTokens } = require ('../config/jwt');
 
 
 /**
@@ -23,7 +23,7 @@ const { generarToken } = require ('../config/jwt');
 
 const registrar = async (req, res) => {
     try {
-        const { nombre, apellido, email, password, telefono, direccion } = req.query;
+        const { nombre, apellido, email, password, telefono, direccion } = req.body;
 
         // validacion 1 verificar que todos los campos requeridos esten presentes
         if (!nombre || !apellido ||!email || !password ) {
@@ -82,7 +82,7 @@ const registrar = async (req, res) => {
         });
 
         // generar Token JWT con datos del usuario
-        const token = generarToken ({
+        const token = generateTokens ({
             id: nuevoUsuario.id,
             email: nuevoUsuario.email,
             rol: nuevoUsuario.rol
@@ -166,14 +166,14 @@ const login = async (req , res) => {
         }
 
         // Generar token JWT con datos basicos del usuario
-        const token = generateToken({
+        const token = generateTokens({
             id: usuario.id,
             email: usuario.email,
             rol: usuario.rol
         });
 
         // preparar respuesta sin password
-        const usuarioSinPassword = usuario.toJson ();
+        const usuarioSinPassword = usuario.toJSON ();
         delete usuarioSinPassword.password;
 
         //respuesta exitosa
@@ -220,7 +220,7 @@ const getMe = async (req, res) => {
 
         // Respuesta exitosa
         res.json ({
-            succes: true,
+            success: true,
             data: {
                 usuario
             }

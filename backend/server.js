@@ -209,14 +209,16 @@ const startServer = async () => {
             //paso 3 ejecutar seeders datos iniciales
             await runSeeders();
 
-            //paso 4 iniciar sevidor express
-            app.listen(PORT, () => {
-                console.log('/n_____________');
-                console.log(`URL: http://localhost:${PORT}`);
-                console.log(`base de datos: ${process.env.DB_NAME}`);
-                console.log(`Modo: ${process.env.NODE_ENV}`);
-                console.log('Servidor listo para realizar peticiones');
-            });
+            //paso 4 iniciar sevidor express (en tests no abrimos puerto)
+            if (process.env.NODE_ENV !== 'test') {
+                app.listen(PORT, () => {
+                    console.log('/n_____________');
+                    console.log(`URL: http://localhost:${PORT}`);
+                    console.log(`base de datos: ${process.env.DB_NAME}`);
+                    console.log(`Modo: ${process.env.NODE_ENV}`);
+                    console.log('Servidor listo para realizar peticiones');
+                });
+            }
         }catch (error) {
             console.error('X Error fatal al iniciar el servidor:', error.message);
             process.exit(1);

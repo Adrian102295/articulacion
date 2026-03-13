@@ -173,6 +173,12 @@ DetallePedido.belongsTo(Pedido, { foreignKey: 'pedidoId', // Campo que conecta l
     onUpdate: 'CASCADE' // Si se actualiza un producto, se actualiza en sus detalles
 });
 
+DetallePedido.belongsTo(Producto, { foreignKey: 'productoId',
+    as: 'producto',
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE'
+});
+
 
 
 /**

@@ -238,7 +238,7 @@ const getCategorias = async (req, res) => {
             });
             return {
                 ...categoria.toJSON(),
-                totalproductos
+                totalProductos
             };
 
 
@@ -319,7 +319,7 @@ const getSubcategoriasporcategorias = async (req, res) => {
             });
             return {
                 ...subcategoria.toJSON(),
-                totalproductos
+                totalProductos
             };
 
 

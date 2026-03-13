@@ -45,7 +45,7 @@ const getCategorias = async (req, res) => {
     }
 
         //obtener categorias
-        const categorias = await Categoria.findAll (Opciones);
+        const categorias = await Categoria.findAll (opciones);
 
         //Respuesta exitosa
         res.json({
@@ -76,7 +76,7 @@ const getCategorias = async (req, res) => {
 
 const getCategoriasById = async (req, res) => {
     try {
-        const { id} = req.query;
+        const { id} = req.params;
 
         //Buscar categorias con subcategorias y contar productos
         const categoria = await Categoria.findByPk (id, {
@@ -149,7 +149,7 @@ const crearCategoria = async (req, res) => {
         });
 
         if (categoriaExistente) {
-            returnres.status(400).json({
+            return res.status(400).json({
                 success: false,
                 message: `Ya existe una categoria con el nombre "${nombre}"`
             });
@@ -198,7 +198,7 @@ const crearCategoria = async (req, res) => {
 const actualizarCategoria = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nombre, descripcion} = req.body;
+        const { nombre, descripcion, activo } = req.body;
 
         //Buscar categoria
         const categoria = await Categoria.findByPk(id);
@@ -218,7 +218,7 @@ const actualizarCategoria = async (req, res) => {
 
             if(categoriaConMisNombre) {
                 return res.status(400).json({
-                    succes: false,
+                    success: false,
                     message: `Ya existe una categoria con el nombre "${nombre}"`
                 });
             }
@@ -234,7 +234,7 @@ const actualizarCategoria = async (req, res) => {
 
         //Respuesta exitosa
         res.json({
-            succes: true,
+            success: true,
             message: 'Categoria actualizada exitosamente',
             data: {
                 categoria
@@ -246,14 +246,14 @@ const actualizarCategoria = async (req, res) => {
 
         if (error.name === 'SequelizeValidationError') {
             return res.status(400).json ({
-                succes: false,
+                success: false,
                 message: 'Error de validacion',
                 errors: error.errors.map(e => e. message)
             });
         }
 
         res.status(500).json({
-            succes: false,
+            success: false,
             message: 'Error al actualizar categoria',
             error: error.message
         });
@@ -337,23 +337,23 @@ const eliminarCategoria = async (req, res) =>{
         const {id} = req.params;
 
         //Buscar categoria
-        const caegoria = await Categoria.findByPk(id);
+        const categoria = await Categoria.findByPk(id);
 
-            if(!categoria) {
+        if(!categoria) {
                 return res.status(404).json({
-                    succes: false,
+                    success: false,
                     message: 'Categoria no encontrada'
             });
         }
 
         //Validacion verificar que no tenga subcategorias
-        const subcatgorias = await subcategoria.count({
+        const subcategorias = await subcategoria.count({
             where: { categoriaId: id}
         });
 
         if(subcategorias > 0) {
             return res.status(400).json({
-                succes: false,
+                success: false,
                 message: `No se puede eliminar la categoria porque
 tiene ${subcategorias} asociadas usa PATCH /api/admin/categorias/:id
 toggle para desactivarla en lugar de eliminarla`
@@ -366,7 +366,7 @@ toggle para desactivarla en lugar de eliminarla`
 
         if(productos > 0) {
             return res.status(400).json({
-                succes: false,
+                success: false,
                 message: `No se puede eliminar la categoria porque
 tiene ${productos} asociadas usa PATCH /api/admin/categorias/:id
 toggle para desactivarla en lugar de eliminarla`
@@ -378,13 +378,13 @@ toggle para desactivarla en lugar de eliminarla`
 
         //Respuesta exitosa
         res.json({
-            succes: true,
+            success: true,
             message: 'Categoria eliminada exitosamente'
         });
     } catch (error) {
         console.error('Error al eliminar la categoria' ,error);
         res.status(500).json({
-            succes: false,
+            success: false,
             message:'Error al eliminar la categoria',
             error: error.message
         });
